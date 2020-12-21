@@ -18,6 +18,7 @@ For generating out onnx with .pth trained out by this pytorch-YOLOv4, execute a 
   python demo_pytorch2onnx.py <weight_file> <image_path> <batch_size> <n_classes> <IN_IMAGE_H> <IN_IMAGE_W>
 
 E.g.
+
     python demo_pytorch2onnx.py yolov4.pth dog.jpg 8 80 416 416
 
 
