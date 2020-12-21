@@ -5,7 +5,6 @@ ns_trainval2017\annotations\instances_val2017.json -c cfg/yolov4-smaller-input.c
 Explanation: set where your images can be found using -dir, then use -gta to point to the ground truth annotations file
 and finally -c to point to the config file you want to use to load the network using.
 """
-
 import argparse
 import datetime
 import json
@@ -130,6 +129,7 @@ def evaluate_on_coco(cfg, resFile):
 
             for annotation in image_annotations:
                 x1_pred, y1_pred, w, h = annotation['bbox']
+                #x1_pred, y1_pred, x2_pred, y2_pred = annotation['bbox']
                 x2_pred, y2_pred = x1_pred + w, y1_pred + h
                 cls_id = annotation['category_id']
                 label = get_class_name(cls_id)
@@ -163,16 +163,19 @@ def test(model, annotations, cfg):
         return
     images = annotations["images"]
     # images = images[:10]
-    resFile = 'data/coco_val_outputs.json'
+    #resFile = 'data/coco_val_outputs.json'
+    resFile = cfg.result #'/workspace/AB_darknet/results/yolov4-tiny.json'
 
     if torch.cuda.is_available():
         use_cuda = 1
     else:
         use_cuda = 0
-
+    
     # do one forward pass first to circumvent cold start
     throwaway_image = Image.open('data/dog.jpg').convert('RGB').resize((model.width, model.height))
-    do_detect(model, throwaway_image, 0.5, 80, 0.4, use_cuda)
+    print("do_detetc...")
+    do_detect(model, throwaway_image, 0.8, 0.4, use_cuda)
+    print("do_detect('dog.jpg') finished")
     boxes_json = []
 
     for i, image_annotation in enumerate(images):
@@ -190,11 +193,15 @@ def test(model, annotations, cfg):
             model.cuda()
 
         start = time.time()
-        boxes = do_detect(model, sized, 0.0, 80, 0.4, use_cuda)
+        boxes = do_detect(model, sized,  0.8, 0.1, use_cuda)
         finish = time.time()
         if type(boxes) == list:
             for box in boxes:
+                if len(box)==0 :
+                    print("null bbox")
+                    continue
                 box_json = {}
+                print("box:",box)
                 category_id = box[-1]
                 score = box[-2]
                 bbox_normalized = box[:4]
@@ -204,11 +211,22 @@ def test(model, annotations, cfg):
                 for i, bbox_coord in enumerate(bbox_normalized):
                     modified_bbox_coord = float(bbox_coord)
                     if i % 2:
-                        modified_bbox_coord *= image_height
+                        modified_bbox_coord *=  model.height #image_height
+                        modified_bbox_coord = max(0,modified_bbox_coord)
+                        modified_bbox_coord = min(model.height,modified_bbox_coord)
+                        modified_bbox_coord *= image_height/model.height 
                     else:
-                        modified_bbox_coord *= image_width
+                        modified_bbox_coord *= model.width #image_width
+                        modified_bbox_coord = max(0,modified_bbox_coord)
+                        modified_bbox_coord = min(model.width,modified_bbox_coord)
+                        modified_bbox_coord *= image_width/model.width
                     modified_bbox_coord = round(modified_bbox_coord, 2)
-                    bbox.append(modified_bbox_coord)
+                    if i <2:
+                       bbox.append(modified_bbox_coord)
+                    else:
+                       bbox.append(modified_bbox_coord - bbox[i-2])
+                bbox[0] += bbox[2]/2
+                bbox[1] += bbox[3]/2
                 box_json["bbox_normalized"] = list(map(lambda x: round(float(x), 2), bbox_normalized))
                 box_json["bbox"] = bbox
                 box_json["score"] = round(float(score), 2)
@@ -227,7 +245,7 @@ def test(model, annotations, cfg):
 
     with open(resFile, 'w') as outfile:
         json.dump(boxes_json, outfile, default=myconverter)
-
+    
     evaluate_on_coco(cfg, resFile)
 
 
@@ -247,6 +265,8 @@ def get_args(**kwargs):
                         help='weights file to load', dest='weights_file')
     parser.add_argument('-c', '--model_config', type=str, default='cfg/yolov4.cfg',
                         help='model config file to load', dest='model_config')
+    parser.add_argument('-r', '--result', type=str, default='results/yolov4-tiny.json',
+                        help='the valid/test result json file', dest='result')
     args = vars(parser.parse_args())
 
     for k in args.keys():

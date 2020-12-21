@@ -77,6 +77,9 @@ def do_detect(model, img, conf_thresh, nms_thresh, use_cuda=1):
     model.eval()
     t0 = time.time()
 
+    if type(img) != np.ndarray:
+        img = np.asarray(img)
+        #img.flags.writeable = True
     if type(img) == np.ndarray and len(img.shape) == 3:  # cv2 image
         img = torch.from_numpy(img.transpose(2, 0, 1)).float().div(255.0).unsqueeze(0)
     elif type(img) == np.ndarray and len(img.shape) == 4:
@@ -84,6 +87,7 @@ def do_detect(model, img, conf_thresh, nms_thresh, use_cuda=1):
     else:
         print("unknow image type")
         exit(-1)
+
 
     if use_cuda:
         img = img.cuda()
