@@ -1,4 +1,4 @@
-Please note this project is not the best implementation of YOLOv4, I fork it to our private repository only to use its onnx-converting scripts.
+Please note this project is not the best implementation of YOLOv4, I fork it to our private repository only to use its onnx-converting scripts and get mAP data.
 
 The latest and best implementation of YOLOv4 is https://github.com/WongKinYiu/ScaledYOLOv4
 I have already testd and confirmed on jetson NANO 4G only Tiny and CSP version of ScaledYOLOv4 can be used because of memory and performance limitation.
@@ -10,7 +10,15 @@ For how to get mAP with the trained-out .weights and .cfg of AlexeyAB darknet, a
     cd /workspace/pytorch-YOLOv4
     python evaluate_on_coco.py -c cfg/yolov4-tiny.cfg -w /workspace/AB_darknet/backup/yolov4-tiny_last.weights -dir /workspace/AB_darknet/data/coco/val2017 -gta /workspace/AB_darknet/data/coco/annotations/instances_val2017.json  -r yolov4-tiny_results.json
 
+For how to generate out onnx with .weights trained out by darknet, just execute commands like:
 
+    python demo_darknet2onnx.py /workspace/AB_darknet/cfg/yolov4-tiny.cfg /workspace/AB_darknet/backup/yolov4-tiny_final.weights data/dog.jpg 1
+
+For generating out onnx with .pth trained out by this pytorch-YOLOv4, execute a command with the following format:
+  python demo_pytorch2onnx.py <weight_file> <image_path> <batch_size> <n_classes> <IN_IMAGE_H> <IN_IMAGE_W>
+
+E.g.
+    python demo_pytorch2onnx.py yolov4.pth dog.jpg 8 80 416 416
 
 
 # The original README:
