@@ -1,3 +1,19 @@
+Please note this project is not the best implementation of YOLOv4, I fork it to our private repository only to use its onnx-converting scripts.
+
+The latest and best implementation of YOLOv4 is https://github.com/WongKinYiu/ScaledYOLOv4
+I have already testd and confirmed on jetson NANO 4G only Tiny and CSP version of ScaledYOLOv4 can be used because of memory and performance limitation.
+
+For ScaledYOLOv4 Tiny, it is really Alexey darknet YOLOv4 Tiny, its training and testing can be done in https://github.com/AlexeyAB/darknet, for its mAP testing, it can be done by evaluate_on_coco.py(but there are some bugs in evaluate_on_coco.py and other files in this project, I have fixed it and will commit the fixes here).
+
+For how to get mAP with the trained-out .weights and .cfg of AlexeyAB darknet, after you have executed 'git clone https://github.com/AlexeyAB/darknet' to download source code and built out darknet, and configured it, and finished training with our own coco2017-formatted dataset, just execute commands like :
+
+    cd /workspace/pytorch-YOLOv4
+    python evaluate_on_coco.py -c cfg/yolov4-tiny.cfg -w /workspace/AB_darknet/backup/yolov4-tiny_last.weights -dir /workspace/AB_darknet/data/coco/val2017 -gta /workspace/AB_darknet/data/coco/annotations/instances_val2017.json  -r yolov4-tiny_results.json
+
+
+
+
+#The original README:
 # Pytorch-YOLOv4
 
 ![](https://img.shields.io/static/v1?label=python&message=3.6|3.7&color=blue)
